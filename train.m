@@ -1,7 +1,11 @@
 function formatted = formatInput(x, maxNumInput)
-  formatted = (vec(x))(1:maxNumInput)
+  formatted = (vec(x))(1:maxNumInput);
 end
 
-downdog1 = load("downdog1.dat");
-size(formatInput(downdog1, 80))
+function input = loadInput(file)
+  input = formatInput(load(file), 80);         
+end
+
+downdog1 = loadInput("downdog1.dat");
+size(downdog1)
 

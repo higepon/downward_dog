@@ -1,5 +1,5 @@
 function ret = maxInput()
-  ret = 90;
+  ret = 86;
 end
 
 function formatted = formatInput(x)
@@ -42,7 +42,11 @@ function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadNoiseData()
 end
 
 function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadWarrior2Data()
-  [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadDownwardDogData();
+  A = loadInput("warrior2_right1.dat");
+  for i = 2:10
+    A = vertcat(A, loadInput(sprintf("warrior2_right%d.dat", i)));
+  end
+  [X_train, X_cv, X_test] = split_data_set(A);
 
   class_index = 3;
   y_train = createY(X_train, class_index);
@@ -121,8 +125,8 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
                  num_labels, (hidden_layer_size + 1));
 
 
-y_cv;
+y_cv
 pred = predict(Theta1, Theta2, X_cv);
 
-#y_test;
-#pred = predict(Theta1, Theta2, X_test);
+y_test;
+pred = predict(Theta1, Theta2, X_test);

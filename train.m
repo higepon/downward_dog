@@ -35,34 +35,27 @@ function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadNoiseData()
   noise = formatNoiseInnput();
   [X_train, X_cv, X_test] = split_data_set(noise);
 
-  y_train = zeros(size(X_train, 1), 3);
-  one = ones(size(X_train, 1), 1);
-  y_train(:,1) = one;
-
-  y_cv = zeros(size(X_cv, 1), 3);
-  one = ones(size(X_cv, 1), 1);
-  y_cv(:,1) = one;
-
-  y_test = zeros(size(X_test, 1), 3);
-  one = ones(size(X_test, 1), 1);
-  y_test(:,1) = one;
+  class_index = 1;
+  y_train = createY(X_train, class_index);
+  y_cv = createY(X_cv, class_index);
+  y_test = createY(X_test, class_index);
 end
 
 function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadWarrior2Data()
   [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadDownwardDogData();
 
-  y_train = zeros(size(X_train, 1), 3);
-  one = ones(size(X_train, 1), 1);
-  y_train(:,3) = one;
+  class_index = 3;
+  y_train = createY(X_train, class_index);
+  y_cv = createY(X_cv, class_index);
+  y_test = createY(X_test, class_index);
+end
 
-  y_cv = zeros(size(X_cv, 1), 3);
-  one = ones(size(X_cv, 1), 1);
-  y_cv(:,3) = one;
-
-  y_test = zeros(size(X_test, 1), 3);
-  one = ones(size(X_test, 1), 1);
-  y_test(:,3) = one;
-
+# Create Matrix Y, which is [0 1 0] * m where 1 = feature we classfies
+function y = createY(X, index)
+  num_labels = 3;
+  y = zeros(size(X, 1), num_labels);
+  one = ones(size(X, 1), 1);
+  y(:,index) = one;
 end
 
 function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadDownwardDogData()
@@ -71,17 +64,10 @@ function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadDownwardDogData()
     A = vertcat(A, loadInput(sprintf("downdog%d.dat", i)));
   end
   [X_train, X_cv, X_test] = split_data_set(A);
-  y_train = zeros(size(X_train, 1), 3);
-  one = ones(size(X_train, 1), 1);
-  y_train(:,2) = one;
-
-  y_cv = zeros(size(X_cv, 1), 3);
-  one = ones(size(X_cv, 1), 1);
-  y_cv(:,2) = one;
-
-  y_test = zeros(size(X_test, 1), 3);
-  one = ones(size(X_test, 1), 1);
-  y_test(:,2) = one;
+  class_index = 2;
+  y_train = createY(X_train, class_index);
+  y_cv = createY(X_cv, class_index);
+  y_test = createY(X_test, class_index);
 end
 
 function [X_train, y_train, X_cv, y_cv, X_test, y_test] = loadAllData()

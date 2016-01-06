@@ -1,5 +1,5 @@
 function ret = maxInput()
-  ret = 86;
+  ret = 85 * 3; # num of rows * (x, y, z)
 end
 
 function formatted = formatInput(x)
@@ -207,21 +207,21 @@ fprintf("==== Start ====\n");
 [X_train, y_train, X_val, y_val, X_test, y_test] = loadAllData();
 
 #plot(X_val(1,:));
-hold on;
-plot(X_val(39,:), "1");
-plot(X_val(38,:), "2");
-plot(X_val(37,:), "3");
-size(X_val(39,:))
-pause;
+## hold on;
+## plot(X_val(39,:), "1");
+## plot(X_val(38,:), "2");
+## plot(X_val(37,:), "3");
+## size(X_val(39,:))
+## pause;
 
 # which lambda works best?
-#runValidationCurve(X_train, y_train, X_val, y_val);
+runValidationCurve(X_train, y_train, X_val, y_val);
 
 # We know this value is the best
 lambda = 0.01;
 
 # draw learning curve to see how # of training data affect the error
-#drawLearningCurve(X_train, y_train, X_val, y_val, lambda);
+drawLearningCurve(X_train, y_train, X_val, y_val, lambda);
 
 [Theta1, Theta2] = trainWithLambda(X_train, y_train, lambda);
 

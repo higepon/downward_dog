@@ -1,9 +1,41 @@
+function b = isEuclidDistance()
+  b = 1;
+end
+
 function ret = maxInput()
-  ret = 85 * 3; # num of rows * (x, y, z)
+  # use x^2 + y^2 + z^2
+  if isEuclidDistance() == 1
+    ret = 85;
+  else
+    ret = 85 * 3; # num of rows * (x, y, z)
+  end
+end
+
+function outputThetaAsFile(name, Theta)
+  fid = fopen(sprintf("%s.c", name), "w");
+  fprintf(fid, "#define NUM_%s_ROW %d\n", toupper(name), size(Theta, 1));
+  fprintf(fid, "#define NUM_%s_COL %d\n", toupper(name), size(Theta, 2));
+  fprintf(fid, "static double %s[] = {\n", name);
+  theta_vec = vec(Theta);
+  for i = 1:length(theta_vec)
+    fprintf(fid, "%g", theta_vec(i));
+    if i != length(theta_vec)
+      fprintf(fid, ",");
+    end
+  end
+  fprintf(fid, "};\n");
+  fclose(fid);
 end
 
 function formatted = formatInput(x)
-  formatted = (vec(x))(1:maxInput())';
+  if isEuclidDistance() == 1
+     x = x .^ 2 + x .^ 2;
+     x = sum(x, 2);
+     x = x(1:maxInput(),:);
+     formatted = x';
+  else
+    formatted = (vec(x))(1:maxInput())';
+  end
 end
 
 function input = loadInput(file)
@@ -13,11 +45,22 @@ end
 # format noise as (maxInput x n) matrix
 function formatted = formatNoiseInnput()
   x = load("noise.dat");
-  x = vec(x);
-  num_col = length(x) / maxInput();
-  num_col = floor(num_col);
-  x = x(1:num_col * maxInput);
-  formatted = reshape(x, num_col, maxInput());
+  if isEuclidDistance() == 1
+    x = x .^ 2 + x .^ 2;
+    x = sum(x, 2);
+    x = vec(x);
+    num_col = length(x) / maxInput();
+    num_col = floor(num_col);
+    x = x(1:num_col * maxInput);
+    formatted = reshape(x, num_col, maxInput());
+  else
+    x = vec(x);
+    num_col = length(x) / maxInput();
+    num_col = floor(num_col);
+    x = x(1:num_col * maxInput);
+    formatted = reshape(x, num_col, maxInput());
+    size(formatted)
+  end
 end
 
 # Split data set to test, training and cross validation
@@ -195,7 +238,7 @@ function i = inputLayerSize()
 end;
 
 function h = hiddenLayerSize()
- h = 200;
+ h = 150;
 end;
 
 function n = numClassificationLabeles()
@@ -215,18 +258,24 @@ fprintf("==== Start ====\n");
 ## pause;
 
 # which lambda works best?
-runValidationCurve(X_train, y_train, X_val, y_val);
+#runValidationCurve(X_train, y_train, X_val, y_val);
 
 # We know this value is the best
-lambda = 0.01;
+lambda = 0.001;
 
 # draw learning curve to see how # of training data affect the error
-drawLearningCurve(X_train, y_train, X_val, y_val, lambda);
+#drawLearningCurve(X_train, y_train, X_val, y_val, lambda);
 
 [Theta1, Theta2] = trainWithLambda(X_train, y_train, lambda);
 
+size(Theta1)
+size(Theta2)
+
 # Predict
 [dummy, answer] = max(y_val, [], 2);
+
+save "Theta1.dat", Theta1;
+save "Theta2.dat", Theta2;
 pred = predict(Theta1, Theta2, X_val);
 
 fprintf('answer\t\tPredict\n');
@@ -239,6 +288,8 @@ for i = 1:size(answer, 1)
           answer(i), pred(i), result);
 end
 
+outputThetaAsFile("theta1", Theta1);
+outputThetaAsFile("theta2", Theta2);
 
 # validationCurve.m を実装する
 # これまとめる

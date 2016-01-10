@@ -11,6 +11,13 @@ function ret = maxInput()
   end
 end
 
+function r = calcSn(S, num)
+  r = 0;
+  for i = 1:num
+    r = r + S(i, i);
+  end
+end
+
 function outputThetaAsFile(name, Theta)
   fid = fopen(sprintf("%s.c", name), "w");
   fprintf(fid, "#define NUM_%s_ROW %d\n", toupper(name), size(Theta, 1));
@@ -200,13 +207,14 @@ function [error_train, error_val] = runValidationCurve(X_train, y_train, X_val, 
 end
 
 function [nn_params, cost] = trainWithLambdaInternal(X_train, y_train, lambda)
-  initial_Theta1 = randInitializeWeights(inputLayerSize(), hiddenLayerSize());
+  input_layer_size = size(X_train, 2);
+  initial_Theta1 = randInitializeWeights(input_layer_size, hiddenLayerSize());
   initial_Theta2 = randInitializeWeights(hiddenLayerSize(), numClassificationLabeles());
   initial_nn_params = [initial_Theta1(:) ; initial_Theta2(:)];
 
   options = optimset('MaxIter', 50);
   costFunction = @(p) nnCostFunction(p, ...
-                                     inputLayerSize(), ...
+                                     input_layer_size, ...
                                      hiddenLayerSize(), ...
                                      numClassificationLabeles(), X_train, y_train, lambda);
 
@@ -214,11 +222,12 @@ function [nn_params, cost] = trainWithLambdaInternal(X_train, y_train, lambda)
 end
 
 function [Theta1, Theta2] = trainWithLambda(X_train, y_train, lambda)
+  input_layer_size = size(X_train, 2);
   [nn_params, cost] = trainWithLambdaInternal(X_train, y_train, lambda);
 
-  Theta1 = reshape(nn_params(1:hiddenLayerSize() * (inputLayerSize() + 1)), ...
-                   hiddenLayerSize(), (inputLayerSize() + 1));
-  Theta2 = reshape(nn_params((1 + (hiddenLayerSize() * (inputLayerSize() + 1))):end), ...
+  Theta1 = reshape(nn_params(1:hiddenLayerSize() * (input_layer_size + 1)), ...
+                   hiddenLayerSize(), (input_layer_size + 1));
+  Theta2 = reshape(nn_params((1 + (hiddenLayerSize() * (input_layer_size + 1))):end), ...
                  numClassificationLabeles(), (hiddenLayerSize() + 1));
 end
 
@@ -238,7 +247,7 @@ function i = inputLayerSize()
 end;
 
 function h = hiddenLayerSize()
- h = 150;
+ h = 90;
 end;
 
 function n = numClassificationLabeles()
@@ -291,4 +300,39 @@ end
 outputThetaAsFile("theta1", Theta1);
 outputThetaAsFile("theta2", Theta2);
 
+### PCA
+Sigma = (X_train' * X_train) / size(X_train, 1);
+[U, S, V] = svd(Sigma);
 
+n = size(X_train, 2);
+for k = 1:n
+    b = 1 - calcSn(S, k) / calcSn(S, n)
+    if b < 0.01
+      break;
+    end
+end
+k
+Z_train = X_train * U(:,1:k);
+Z_val = X_val * U(:,1:k);
+
+[Theta1, Theta2] = trainWithLambda(Z_train, y_train, lambda);
+
+size(Theta1)
+size(Theta2)
+
+# Predict
+[dummy, answer] = max(y_val, [], 2);
+
+pred = predict(Theta1, Theta2, Z_val);
+
+fprintf('answer\t\tPredict\n');
+for i = 1:size(answer, 1)
+  result = '';
+  if pred(i) != answer(i)
+     result = '(*)';
+  end
+  fprintf(' %f\t%f %s\n', ...
+          answer(i), pred(i), result);
+end
+
+size(U(:,1:k))

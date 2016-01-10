@@ -291,10 +291,4 @@ end
 outputThetaAsFile("theta1", Theta1);
 outputThetaAsFile("theta2", Theta2);
 
-# validationCurve.m を実装する
-# これまとめる
-# 制度が悪いものを実際のデータをグラフで見てみる
-# x .^2 を追加してみる？
-
-
 

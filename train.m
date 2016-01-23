@@ -19,11 +19,12 @@ function r = calcSn(S, num)
 end
 
 function outputThetaAsFile(name, Theta)
-  fid = fopen(sprintf("%s.c", name), "w");
+  fid = fopen(sprintf("%s.h", name), "w");
   fprintf(fid, "#define NUM_%s_ROW %d\n", toupper(name), size(Theta, 1));
   fprintf(fid, "#define NUM_%s_COL %d\n", toupper(name), size(Theta, 2));
   fprintf(fid, "static double %s[] = {\n", name);
-  theta_vec = vec(Theta);
+  # we take transpose Theta, so that each row comes first in the vec
+  theta_vec = vec(Theta');
   for i = 1:length(theta_vec)
     fprintf(fid, "%g", theta_vec(i));
     if i != length(theta_vec)
@@ -33,6 +34,23 @@ function outputThetaAsFile(name, Theta)
   fprintf(fid, "};\n");
   fclose(fid);
 end
+
+function outputXAsFile(name, X)
+  fid = fopen(sprintf("%s.h", name), "w");
+  fprintf(fid, "#define NUM_%s_ROW %d\n", toupper(name), size(X, 1));
+  fprintf(fid, "#define NUM_%s_COL %d\n", toupper(name), size(X, 2));
+  fprintf(fid, "static uint32_t %s[] = {\n", name);
+  theta_vec = vec(X);
+  for i = 1:length(theta_vec)
+    fprintf(fid, "%d", theta_vec(i));
+    if i != length(theta_vec)
+      fprintf(fid, ",");
+    end
+  end
+  fprintf(fid, "};\n");
+  fclose(fid);
+end
+
 
 function formatted = formatInput(x)
   if isEuclidDistance() == 1
@@ -126,8 +144,19 @@ end
 
 function [X_train, y_train, X_val, y_val, X_test, y_test] = loadAllData()
   [X1_train, y1_train, X1_cv, y1_cv, X1_test, y1_test] = loadNoiseData();
+  plot(X1_train')
+  axis([0, 87, 0, 15000000]); 
+  pause;
+
   [X2_train, y2_train, X2_cv, y2_cv, X2_test, y2_test] = loadDownwardDogData();
+  plot(X2_train');
+  axis([0, 87, 0, 15000000]); 
+  pause;
   [X3_train, y3_train, X3_cv, y3_cv, X3_test, y3_test] = loadWarrior2Data();
+  plot(X3_train');
+  axis([0, 87, 0, 15000000]); 
+  pause;
+
   X_train = vertcat(X1_train, X2_train, X3_train);
   y_train = vertcat(y1_train, y2_train, y3_train);
   X_val = vertcat(X1_cv, X2_cv, X3_cv);
@@ -247,7 +276,7 @@ function i = inputLayerSize()
 end;
 
 function h = hiddenLayerSize()
- h = 90;
+ h = 120;
 end;
 
 function n = numClassificationLabeles()
@@ -270,7 +299,7 @@ fprintf("==== Start ====\n");
 #runValidationCurve(X_train, y_train, X_val, y_val);
 
 # We know this value is the best
-lambda = 0.001;
+lambda = 0.01;
 
 # draw learning curve to see how # of training data affect the error
 #drawLearningCurve(X_train, y_train, X_val, y_val, lambda);
@@ -299,6 +328,27 @@ end
 
 outputThetaAsFile("theta1", Theta1);
 outputThetaAsFile("theta2", Theta2);
+outputXAsFile("xval", (X_val(1,:)));
+
+## debug purpose
+
+
+my_x = X_val(1,:);
+m = size(my_x, 1);
+num_labels = size(Theta2, 1);
+first = [ones(m, 1) my_x] * Theta1';
+h1 = sigmoid(first);
+second = [ones(m, 1) h1] * Theta2';
+h2 = sigmoid(second);
+outputThetaAsFile("first", first);
+outputThetaAsFile("h1", h1);
+outputThetaAsFile("second", second);
+outputThetaAsFile("h2", h2);
+
+
+## end debug purpose
+
+pred = predict(Theta1, Theta2, X_val(1,:))
 
 ### PCA
 Sigma = (X_train' * X_train) / size(X_train, 1);
@@ -336,3 +386,4 @@ for i = 1:size(answer, 1)
 end
 
 size(U(:,1:k))
+
